@@ -1,9 +1,7 @@
 import { program } from "commander";
 import fs from "node:fs";
 import * as fsPromises from "fs/promises";
-import { exec } from "node:child_process";
-import { error } from "node:console";
-import { stderr, stdout } from "node:process";
+import executeNpm from "../lib/execute_npm.js";
 
 const folders = [
     "src",
@@ -17,19 +15,10 @@ program
     .command("init")
     .description("Initialize a new express js project")
     .action(async() => {
-       exec('npm init -y', (error, stdout, stderr) => {
-            if (error) {
-                console.error(`exec error: ${error}`);
-                return;
-            }
 
-            if (stderr) {
-                console.error(`stderr: ${stderr}`);
-                return;
-            }
-       });
+        executeNpm('init', '-y', '');
 
-       folders.forEach((folder) => {
+        folders.forEach((folder) => {
             try {
                 if (!fs.existsSync(folder)) {
                     fs.mkdirSync(folder);
@@ -37,7 +26,7 @@ program
             } catch (error) {
                 console.error(error);
             }
-       });
+        });
 
         try {
             var indexContent = "const express = require('express');\n";
@@ -60,16 +49,11 @@ program
             console.error(error);
         }
 
-        exec('npm i express dotenv cors bcrypt', (error, stdout, stderr) => {
-            if (error) {
-                console.error(`exec error: ${error}`);
-                return;
-            }
-
-            if (stderr) {
-                console.error(`stderr: ${stderr}`);
-                return;
-            }
-       });
+        executeNpm('i', '', [
+            'express',
+            'dotenv',
+            'cors',
+            'bcrypt'
+        ]);
     })
 ;

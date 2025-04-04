@@ -1,7 +1,8 @@
 import { program } from "commander";
 import inquirer from "inquirer";
-import { exec } from "node:child_process";
 import fs from "node:fs";
+import * as fsPromises from "fs/promises";
+import executeNpm from "../lib/execute_npm.js";
 
 // program
 //     .command("database")
@@ -24,25 +25,28 @@ program
                     ]
                 }
             ])
-            .then((answers) => {
-                var npmCommand = "npm i ";
+            .then(async (answers) => {
+                let args = "";
                 if(answers.database === "mysql2") {
-                    npmCommand += "-D";
+                    args += "-D";
                 }
-                exec(`${npmCommand} ${answers.database}`, (error, stdout, stderr) => {
-                    if (error) {
-                        console.error(`exec error: ${error}`);
-                        return;
-                    }
-
-                    if (stderr) {
-                        console.error(`stderr: ${stderr}`);
-                        return;
-                    }
-                });
-
-                fs.writeFileSync("src/config/database.js", `const ${answers.database} = require('${answers.database}');\n`);
-                fs.writeFileSync("src/.env", "PORT=3000\n");
+                executeNpm('i', args, answers.database);
+                let port = answers.database === "mongoose" ? 27017 : 3306;
+                
+                try {
+                    await fsPromises.writeFile("src/.env", `DB_PORT=${port} \nHOSTNAME=localhost \nDB_USER=root \nDB_PASSWORD= \nDB_NAME= \nPORT=3000`);
+                
+                    // if(answers.database === "mongoose") {
+                    //     const content = await fsPromises.readFile("src/lib/database/mongodb.js", "utf-8");
+                    //     await fsPromises.writeFile("src/config/database.js", content);
+                    // } else {
+                    //     const content = await fsPromises.readFile("src/lib/database/mysql.js", "utf-8");
+                    //     await fsPromises.writeFile("src/config/database.js", content);
+                    // }
+                } catch (error) {
+                    console.error(error);
+                }
+                
             })
     })
 ;
