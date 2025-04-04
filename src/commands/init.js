@@ -2,7 +2,10 @@ import { program } from "commander";
 import fs from "node:fs";
 import * as fsPromises from "fs/promises";
 import executeNpm from "../lib/execute_npm.js";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 
+const __dirname = dirname(fileURLToPath(import.meta.url));
 const folders = [
     "src",
     "src/config",
@@ -29,13 +32,9 @@ program
         });
 
         try {
-            var indexContent = "const express = require('express');\n";
-            indexContent += "const cors = require('cors');\n";
-            indexContent += "const dotenv = require('dotenv');\n";
-            indexContent += "\n\n";
-            indexContent += "dotenv.config();";
-            indexContent += "\n\n";
-            indexContent += "const app = express();";
+            const indexContent = await fsPromises.readFile(
+                join(__dirname, '../lib/index_template.js'), 'utf-8'
+            );
             await fsPromises.writeFile('src/index.js', indexContent);
 
             await fsPromises.writeFile('src/.env', "");

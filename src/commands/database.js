@@ -3,6 +3,10 @@ import inquirer from "inquirer";
 import fs from "node:fs";
 import * as fsPromises from "fs/promises";
 import executeNpm from "../lib/execute_npm.js";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // program
 //     .command("database")
@@ -36,13 +40,17 @@ program
                 try {
                     await fsPromises.writeFile("src/.env", `DB_PORT=${port} \nHOSTNAME=localhost \nDB_USER=root \nDB_PASSWORD= \nDB_NAME= \nPORT=3000`);
                 
-                    // if(answers.database === "mongoose") {
-                    //     const content = await fsPromises.readFile("src/lib/database/mongodb.js", "utf-8");
-                    //     await fsPromises.writeFile("src/config/database.js", content);
-                    // } else {
-                    //     const content = await fsPromises.readFile("src/lib/database/mysql.js", "utf-8");
-                    //     await fsPromises.writeFile("src/config/database.js", content);
-                    // }
+                    if(answers.database === "mongoose") {
+                        const content = await fsPromises.readFile(
+                            join(__dirname, "../lib/database/mongodb.js"), "utf-8"
+                        );
+                        await fsPromises.writeFile("src/config/database.js", content);
+                    } else {
+                        const content = await fsPromises.readFile(
+                            join(__dirname, "../lib/database/mysql.js"), "utf-8"
+                        );
+                        await fsPromises.writeFile("src/config/database.js", content);
+                    }
                 } catch (error) {
                     console.error(error);
                 }
