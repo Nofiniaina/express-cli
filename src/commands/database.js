@@ -5,6 +5,7 @@ import * as fsPromises from "fs/promises";
 import executeNpm from "../lib/execute_npm.js";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import insertText from "../lib/insert_text.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -51,10 +52,21 @@ program
                         );
                         await fsPromises.writeFile("src/config/database.js", content);
                     }
+
+                    if(answers.database === "mongoose"){
+                        const filePath = "src/index.js";
+                        insertText(filePath, 
+                            "const database = require('./config/database');", 
+                            "const dotenv = require('dotenv');"
+                        );
+                        insertText(filePath,
+                            "\ndatabase.connectDB();",
+                            "app.use(express.json());"
+                        );
+                    }
                 } catch (error) {
                     console.error(error);
                 }
-                
             })
     })
 ;
