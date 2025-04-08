@@ -40,7 +40,13 @@ program
                 let port = answers.database === "mongoose" ? 27017 : 3306;
                 
                 try {
-                    await fsPromises.writeFile("src/.env", `DB_PORT=${port} \nHOSTNAME=localhost \nDB_USER=root \nDB_PASSWORD= \nDB_NAME= \nPORT=3000 \nDATABASE=${answers.database} `);
+                    let db = (answers.database === "mongoose") ? "mongodb" : "mysql";
+
+                    if (answers.database === "mysql2") {
+                        await fsPromises.writeFile(".env", `DATABASE=${db} \nHOSTNAME=localhost \nDB_USER=root \nDB_PASSWORD= \nDB_NAME= \nPORT=3000 \n`);
+                    }
+                    
+                    await fsPromises.writeFile(".env", `DATABASE=${db}`);
                 
                     if(answers.database === "mongoose") {
                         const content = await fsPromises.readFile(
@@ -57,11 +63,11 @@ program
                     if(answers.database === "mongoose"){
                         const filePath = "src/index.js";
                         insertText(filePath, 
-                            "const database = require('./config/database');", 
+                            "const connectDB = require('./config/database');", 
                             "const dotenv = require('dotenv');"
                         );
                         insertText(filePath,
-                            "\ndatabase.connectDB();",
+                            "\nconnectDB();",
                             "app.use(express.json());"
                         );
                     }
@@ -90,7 +96,6 @@ program
                 );
                 await fsPromises.writeFile("src/models/" + fileName + "Model" + ".js", content);
                 const filePath = "src/models/" + fileName + "Model" + ".js";
-                changeText(filePath, "schema", name);
                 changeText(filePath, "Model", name);
             } catch (error) {
                 console.error(error);
@@ -137,9 +142,48 @@ program
 
         try {
             const fileName = name[0].toLowerCase() + name.slice(1);
-            await fsPromises.writeFile("src/models/" + fileName + "Model" + ".js", "");
+
+            const db = await fsPromises.readFile(".env", "utf-8");
+            const dbType = db.split("\n").find(line => line.startsWith("DATABASE=")).split("=")[1].trim();
+
+            if(dbType === "mongodb") {
+                const content = await fsPromises.readFile(
+                    join(__dirname, "../lib/database/model/model_mongodb.js"), "utf-8"
+                );
+                await fsPromises.writeFile("src/models/" + fileName + "Model" + ".js", content);
+                changeText("src/models/" + fileName + "Model" + ".js", "Model", name);
+            } else {
+                await fsPromises.writeFile("src/models/" + fileName + "Model" + ".js", content);
+            }
+
             await fsPromises.writeFile("src/controllers/" + fileName + "Controller" + ".js", "");
+
             await fsPromises.writeFile("src/routes/" + fileName + "Route" + ".js", "");
+        } catch (error) {
+            console.error(error);
+        }
+    })
+;
+
+program
+    .command("database:crud")
+    .description("Generate a CRUD for a model")
+    .arguments("<model>", "Name of the model")
+    .action(async(model) => {
+        if(!model) {
+            console.error("Please provide a name for the model");
+            return;
+        }
+
+        const db = await fsPromises.readFile(".env", "utf-8");
+        const dbType = db.split("\n").find(line => line.startsWith("DATABASE=")).split("=")[1].trim();
+
+        if(dbType === "mongodb") {
+            
+        }
+
+        try {
+            
         } catch (error) {
             console.error(error);
         }
