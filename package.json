@@ -2,8 +2,9 @@
   "name": "express-cli",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
+    "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -11,8 +12,11 @@
   "license": "ISC",
   "type": "module",
   "bin": {
-    "express-cli": "./bin/index.js"
+    "express-cli": "./dist/bin/index.js"
   },
+  "files": [
+    "dist"
+  ],
   "dependencies": {
     "boxen": "^8.0.1",
     "chalk": "^5.6.2",
@@ -28,5 +32,9 @@
     "ora": "^9.3.0",
     "update-notifier": "^7.3.1",
     "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^25.4.0",
+    "typescript": "^5.9.3"
   }
 }
